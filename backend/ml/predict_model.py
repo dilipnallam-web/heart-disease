@@ -59,6 +59,9 @@ class HeartDiseasePredictor:
                 except Exception:
                     pass
 
+                # Patch scikit-learn version differences (e.g. missing multi_class attribute on LogisticRegression)
+                self._patch_estimator_compatibility(self.pipeline)
+
                 self.is_loaded = True
             except Exception as e:
                 self.is_loaded = False
@@ -67,6 +70,44 @@ class HeartDiseasePredictor:
         else:
             self.is_loaded = False
             self.pipeline = None
+
+    @classmethod
+    def _patch_estimator_compatibility(cls, obj):
+        """
+        Recursively ensures compatibility across scikit-learn versions for unpickled estimators.
+        Fixes missing attributes like 'multi_class' on LogisticRegression instances.
+        """
+        if obj is None:
+            return
+
+        # Fix LogisticRegression missing 'multi_class' attribute across sklearn 1.4 vs 1.5+
+        if "LogisticRegression" in obj.__class__.__name__:
+            if not hasattr(obj, "multi_class"):
+                try:
+                    setattr(obj, "multi_class", "auto")
+                except Exception:
+                    pass
+
+        # Recursively patch composite estimators and pipelines
+        if hasattr(obj, "named_steps") and isinstance(obj.named_steps, dict):
+            for step in obj.named_steps.values():
+                cls._patch_estimator_compatibility(step)
+        if hasattr(obj, "estimators_") and isinstance(obj.estimators_, (list, tuple)):
+            for est in obj.estimators_:
+                cls._patch_estimator_compatibility(est)
+        if hasattr(obj, "estimators") and isinstance(obj.estimators, (list, tuple)):
+            for item in obj.estimators:
+                if isinstance(item, tuple) and len(item) == 2:
+                    cls._patch_estimator_compatibility(item[1])
+                else:
+                    cls._patch_estimator_compatibility(item)
+        if hasattr(obj, "named_estimators_") and isinstance(obj.named_estimators_, dict):
+            for est in obj.named_estimators_.values():
+                cls._patch_estimator_compatibility(est)
+        if hasattr(obj, "final_estimator_"):
+            cls._patch_estimator_compatibility(obj.final_estimator_)
+        if hasattr(obj, "final_estimator"):
+            cls._patch_estimator_compatibility(obj.final_estimator)
 
     def validate_inputs(self, raw_input_dict):
         """
@@ -138,6 +179,9 @@ class HeartDiseasePredictor:
         validated_data = self.validate_inputs(raw_input_dict)
         # Prepare single-row DataFrame with exact feature column order and matching float64 types
         df_row = pd.DataFrame([validated_data])[FEATURE_COLUMNS].astype(float)
+
+        # Ensure model compatibility across scikit-learn versions
+        self._patch_estimator_compatibility(self.pipeline)
 
         # Predict class
         pred_class = int(self.pipeline.predict(df_row)[0])
