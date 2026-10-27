@@ -93,17 +93,30 @@ def create_app(config_name=None):
 
     @app.route("/")
     def index():
-        return send_from_directory(frontend_dir, "index.html")
+        index_file = os.path.join(frontend_dir, "index.html")
+        if os.path.exists(index_file):
+            return send_from_directory(frontend_dir, "index.html")
+        return {
+            "service": "CardioPredict API",
+            "status": "online",
+            "message": "Backend API is running. Access frontend via static routes or configure FRONTEND_ORIGIN."
+        }, 200
 
     @app.route("/<path:filename>")
     def serve_frontend_page(filename):
+        if not os.path.exists(frontend_dir):
+            return error_response(message="Resource not found.", status_code=404)
         target = os.path.join(frontend_dir, filename)
-        if os.path.exists(target):
+        if os.path.exists(target) and os.path.isfile(target):
             return send_from_directory(frontend_dir, filename)
         # Check if .html extension was omitted
-        if os.path.exists(f"{target}.html"):
+        html_target = f"{target}.html"
+        if os.path.exists(html_target) and os.path.isfile(html_target):
             return send_from_directory(frontend_dir, f"{filename}.html")
-        return send_from_directory(frontend_dir, "404.html"), 404
+        page_404 = os.path.join(frontend_dir, "404.html")
+        if os.path.exists(page_404):
+            return send_from_directory(frontend_dir, "404.html"), 404
+        return error_response(message="Page not found.", status_code=404)
 
     return app
 
