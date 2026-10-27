@@ -26,7 +26,6 @@
 
       <ul class="navbar-nav">
         <li><a href="index.html" class="nav-link">Home</a></li>
-        <li><a href="about.html" class="nav-link">About & Methodology</a></li>
         <li><a href="predict.html" class="nav-link">Run Assessment</a></li>
         <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
         <li><a href="history.html" class="nav-link">History</a></li>
@@ -49,6 +48,30 @@
         </div>
         <div>
           <span id="result-risk-badge" class="badge risk-low" style="font-size: 0.95rem; padding: 0.5rem 1rem;">Analyzing...</span>
+        </div>
+      </div>
+
+      <!-- Patient Information Summary Card -->
+      <div class="card" style="margin-bottom: 2rem;">
+        <div class="card-header">
+          <h3 class="card-title">Patient Identification</h3>
+          <span class="badge badge-secondary" style="font-size: 0.75rem;">Clinical Record</span>
+        </div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Patient Name</div>
+              <div id="result-patient-name" style="font-size: 1.15rem; font-weight: 700; color: var(--text-main); margin-top: 0.25rem;">Loading...</div>
+            </div>
+            <div>
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Phone Number</div>
+              <div id="result-patient-phone" style="font-size: 1.05rem; font-weight: 600; color: var(--text-main); margin-top: 0.25rem;">Loading...</div>
+            </div>
+            <div style="grid-column: 1 / -1;">
+              <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase;">Residential Address</div>
+              <div id="result-patient-address" style="font-size: 0.95rem; color: var(--text-main); margin-top: 0.25rem;">Loading...</div>
+            </div>
+          </div>
         </div>
       </div>
 

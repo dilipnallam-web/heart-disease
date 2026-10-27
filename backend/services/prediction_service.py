@@ -49,6 +49,17 @@ class PredictionService:
                 "status": 500
             }
 
+        # Extract patient demographic information
+        patient_name = str(input_payload.get("patient_name") or "").strip()
+        patient_phone = str(input_payload.get("patient_phone") or "").strip()
+        patient_address = str(input_payload.get("patient_address") or "").strip()
+
+        patient_info = {
+            "name": patient_name if patient_name else "Anonymous Patient",
+            "phone": patient_phone,
+            "address": patient_address
+        }
+
         # Save prediction record to MongoDB for the authenticated user
         db = get_db()
         user_id = str(user_dict["_id"])
@@ -56,7 +67,8 @@ class PredictionService:
         pred_doc = Prediction.create_document(
             user_id=user_id,
             validated_features=prediction_result["validated_features"],
-            prediction_result=prediction_result
+            prediction_result=prediction_result,
+            patient_info=patient_info
         )
 
         try:
@@ -69,6 +81,9 @@ class PredictionService:
 
         response_data = {
             "id": saved_id,
+            "patient_name": pred_doc["patient_name"],
+            "patient_phone": pred_doc["patient_phone"],
+            "patient_address": pred_doc["patient_address"],
             "prediction": prediction_result["prediction"],
             "prediction_label": prediction_result["prediction_label"],
             "probability": prediction_result.get("probability"),

@@ -80,11 +80,16 @@ async function loadHistory() {
       tdDate.textContent = formatDateTime(item.created_at);
       tr.appendChild(tdDate);
 
-      // Patient Vitals
+      // Patient Details & Vitals
       const tdVitals = document.createElement('td');
       const feats = item.validated_features || {};
       const sexLabel = feats.sex === 1 ? 'Male' : 'Female';
-      tdVitals.textContent = `${feats.age || 'N/A'} yrs, ${sexLabel} | BP: ${feats.trestbps || 'N/A'}`;
+      const patientName = item.patient_name || 'Anonymous Patient';
+      const phoneText = item.patient_phone ? ` | 📞 ${item.patient_phone}` : '';
+      tdVitals.innerHTML = `
+        <div style="font-weight: 700; color: var(--text-main);">${escapeHtml(patientName)}</div>
+        <small class="text-muted">${feats.age || 'N/A'} yrs, ${sexLabel} | BP: ${feats.trestbps || 'N/A'}${escapeHtml(phoneText)}</small>
+      `;
       tr.appendChild(tdVitals);
 
       // Prediction
@@ -146,17 +151,41 @@ async function loadHistory() {
   }
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function showDetailModal(item) {
   const modalContent = document.getElementById('modal-detail-content');
   if (!modalContent) return;
 
   const feats = item.validated_features || {};
   modalContent.innerHTML = `
+    <!-- Patient Demographic Card -->
+    <div style="background: #f8fafc; border: 1px solid var(--light-border); border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.25rem;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+        <div>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Patient Identification</span>
+          <h3 style="margin: 0.2rem 0; font-size: 1.25rem; color: var(--text-main);">${escapeHtml(item.patient_name || 'Anonymous Patient')}</h3>
+        </div>
+        <span class="badge ${item.prediction === 1 ? 'risk-high' : 'risk-low'}">${item.risk_level || 'Prediction'}</span>
+      </div>
+      <div style="font-size: 0.88rem; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+        <div><strong>Phone:</strong> ${escapeHtml(item.patient_phone || 'Not provided')}</div>
+        <div><strong>Analyzed:</strong> ${formatDateTime(item.created_at)}</div>
+        <div style="grid-column: 1 / -1;"><strong>Address:</strong> ${escapeHtml(item.patient_address || 'Not provided')}</div>
+      </div>
+    </div>
+
     <div style="margin-bottom: 1rem;">
-      <span class="badge ${item.prediction === 1 ? 'risk-high' : 'risk-low'}">${item.risk_level || 'Prediction'}</span>
-      <h3 style="margin-top: 0.5rem;">${item.prediction_label}</h3>
-      <p class="text-muted" style="margin-bottom: 0;">Analyzed on: ${formatDateTime(item.created_at)}</p>
-      <p class="text-muted">Estimated Disease Probability: <strong>${typeof item.probability === 'number' ? (item.probability * 100).toFixed(1) + '%' : 'N/A'}</strong></p>
+      <h4 style="margin: 0 0 0.25rem 0; color: ${item.prediction === 1 ? 'var(--danger)' : 'var(--success)'};">${item.prediction_label}</h4>
+      <p class="text-muted" style="font-size: 0.9rem;">Estimated Heart Disease Probability: <strong>${typeof item.probability === 'number' ? (item.probability * 100).toFixed(1) + '%' : 'N/A'}</strong></p>
     </div>
     <div class="table-wrapper">
       <table class="table">

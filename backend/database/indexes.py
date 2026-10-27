@@ -18,10 +18,11 @@ def create_database_indexes(db):
         user_created_idx = db.users.create_index([("created_at", DESCENDING)])
         results["users"] = [email_idx, user_created_idx]
 
-        # Predictions Collection: Compound index (user_id, created_at)
+        # Predictions Collection: Compound index (user_id, created_at) and (user_id, patient_name)
         pred_user_idx = db.predictions.create_index([("user_id", ASCENDING), ("created_at", DESCENDING)])
         pred_created_idx = db.predictions.create_index([("created_at", DESCENDING)])
-        results["predictions"] = [pred_user_idx, pred_created_idx]
+        pred_patient_idx = db.predictions.create_index([("user_id", ASCENDING), ("patient_name", ASCENDING)])
+        results["predictions"] = [pred_user_idx, pred_created_idx, pred_patient_idx]
 
         # Model Metrics Collection: model_version and timestamp
         metrics_ver_idx = db.model_metrics.create_index([("model_version", ASCENDING)])

@@ -44,3 +44,24 @@ def test_predict_success_and_persistence(auth_client, sample_prediction_payload)
     hist_items = hist_res.get_json()["data"]["items"]
     assert len(hist_items) == 1
     assert hist_items[0]["id"] == data["id"]
+
+def test_predict_with_patient_demographics(auth_client, sample_prediction_payload):
+    payload = sample_prediction_payload.copy()
+    payload["patient_name"] = "Eleanor Vance"
+    payload["patient_phone"] = "+1 (555) 019-2834"
+    payload["patient_address"] = "742 Evergreen Terrace, Springfield"
+
+    res = auth_client.post("/api/predict", json=payload)
+    assert res.status_code == 200
+    data = res.get_json()["data"]
+    assert data["patient_name"] == "Eleanor Vance"
+    assert data["patient_phone"] == "+1 (555) 019-2834"
+    assert data["patient_address"] == "742 Evergreen Terrace, Springfield"
+
+    # Verify history detail preserves patient details
+    hist_res = auth_client.get(f"/api/history/{data['id']}")
+    assert hist_res.status_code == 200
+    item = hist_res.get_json()["data"]["prediction"]
+    assert item["patient_name"] == "Eleanor Vance"
+    assert item["patient_phone"] == "+1 (555) 019-2834"
+    assert item["patient_address"] == "742 Evergreen Terrace, Springfield"

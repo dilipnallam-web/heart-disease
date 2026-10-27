@@ -30,18 +30,28 @@ class Config:
 
     # Machine Learning Artifacts
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-    MODEL_ARTIFACT_PATH = os.getenv(
-        "MODEL_ARTIFACT_PATH",
-        os.path.join(BASE_DIR, "ml", "artifacts", "stacking_heart_model.joblib")
-    )
-    METRICS_ARTIFACT_PATH = os.getenv(
-        "METRICS_ARTIFACT_PATH",
-        os.path.join(BASE_DIR, "ml", "artifacts", "model_metrics.json")
-    )
-    COMPARISON_ARTIFACT_PATH = os.getenv(
-        "COMPARISON_ARTIFACT_PATH",
-        os.path.join(BASE_DIR, "ml", "artifacts", "model_comparison.json")
-    )
+
+    @staticmethod
+    def _resolve_artifact(env_key, default_rel_path):
+        val = os.getenv(env_key)
+        base = os.path.abspath(os.path.dirname(__file__))
+        if not val:
+            return os.path.join(base, default_rel_path)
+        if os.path.isabs(val):
+            return val
+        # Check relative to backend directory
+        cand1 = os.path.join(base, val)
+        if os.path.exists(cand1):
+            return cand1
+        # Check relative to repo root
+        cand2 = os.path.join(os.path.dirname(base), val)
+        if os.path.exists(cand2):
+            return cand2
+        return cand1
+
+    MODEL_ARTIFACT_PATH = _resolve_artifact.__func__("MODEL_ARTIFACT_PATH", os.path.join("ml", "artifacts", "stacking_heart_model.joblib"))
+    METRICS_ARTIFACT_PATH = _resolve_artifact.__func__("METRICS_ARTIFACT_PATH", os.path.join("ml", "artifacts", "model_metrics.json"))
+    COMPARISON_ARTIFACT_PATH = _resolve_artifact.__func__("COMPARISON_ARTIFACT_PATH", os.path.join("ml", "artifacts", "model_comparison.json"))
 
     # App Settings
     DEBUG = False

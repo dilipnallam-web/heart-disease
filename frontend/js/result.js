@@ -87,6 +87,22 @@ function renderResult(data) {
     dateEl.textContent = formatDateTime(data.created_at);
   }
 
+  // Populate Patient Demographic Details
+  const nameEl = document.getElementById('result-patient-name');
+  if (nameEl) {
+    nameEl.textContent = data.patient_name || 'Anonymous Patient';
+  }
+
+  const phoneEl = document.getElementById('result-patient-phone');
+  if (phoneEl) {
+    phoneEl.textContent = data.patient_phone || 'Not provided';
+  }
+
+  const addressEl = document.getElementById('result-patient-address');
+  if (addressEl) {
+    addressEl.textContent = data.patient_address || 'Not provided';
+  }
+
   // Render 13-feature input table
   renderFeatureTable(data.validated_features || {});
 }

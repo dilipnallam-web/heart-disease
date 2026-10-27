@@ -27,8 +27,33 @@ export async function initPredictPage() {
     const submitBtn = form.querySelector('button[type="submit"]');
     const originalText = submitBtn.innerHTML;
 
+    const patientName = form.patient_name ? form.patient_name.value.trim() : '';
+    const patientPhone = form.patient_phone ? form.patient_phone.value.trim() : '';
+    const patientAddress = form.patient_address ? form.patient_address.value.trim() : '';
+
+    if (!patientName) {
+      showToast('Please enter the patient name.', 'error');
+      if (form.patient_name) form.patient_name.focus();
+      return;
+    }
+
+    if (!patientPhone) {
+      showToast('Please enter the patient phone number.', 'error');
+      if (form.patient_phone) form.patient_phone.focus();
+      return;
+    }
+
+    if (!patientAddress) {
+      showToast('Please enter the patient address.', 'error');
+      if (form.patient_address) form.patient_address.focus();
+      return;
+    }
+
     // Collect and format features exactly matching UCI schema
     const payload = {
+      patient_name: patientName,
+      patient_phone: patientPhone,
+      patient_address: patientAddress,
       age: parseFloat(form.age.value),
       sex: parseInt(form.sex.value, 10),
       cp: parseInt(form.cp.value, 10),
@@ -44,9 +69,10 @@ export async function initPredictPage() {
       thal: parseInt(form.thal.value, 10)
     };
 
-    // Client-side quick checks
-    for (const [key, val] of Object.entries(payload)) {
-      if (isNaN(val)) {
+    // Client-side quick checks for numeric features
+    const numericKeys = ['age', 'sex', 'cp', 'trestbps', 'chol', 'fbs', 'restecg', 'thalach', 'exang', 'oldpeak', 'slope', 'ca', 'thal'];
+    for (const key of numericKeys) {
+      if (isNaN(payload[key])) {
         showToast(`Please complete the feature: ${key}`, 'error');
         return;
       }

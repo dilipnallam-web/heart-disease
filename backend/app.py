@@ -3,23 +3,24 @@ Heart Disease Prediction Full-Stack Flask Application.
 Application Factory, Blueprints Registration, Database Initialization, and Middleware Setup.
 """
 import os
+import sys
+
+# Ensure repository root is on sys.path when app.py is invoked directly as a script
+_repo_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if _repo_dir not in sys.path:
+    sys.path.insert(0, _repo_dir)
+
+if __package__ is None or __package__ == "":
+    __package__ = "backend"
+
 from flask import Flask, send_from_directory, render_template_string
-try:
-    from .config import get_config, config_by_name
-    from .extensions import cors
-    from .database.mongodb import init_db
-    from .database.indexes import create_database_indexes
-    from .routes import register_blueprints
-    from .middleware.security import add_security_headers
-    from .utils.responses import error_response
-except ImportError:
-    from config import get_config, config_by_name
-    from extensions import cors
-    from database.mongodb import init_db
-    from database.indexes import create_database_indexes
-    from routes import register_blueprints
-    from middleware.security import add_security_headers
-    from utils.responses import error_response
+from .config import get_config, config_by_name
+from .extensions import cors
+from .database.mongodb import init_db
+from .database.indexes import create_database_indexes
+from .routes import register_blueprints
+from .middleware.security import add_security_headers
+from .utils.responses import error_response
 
 def create_app(config_name=None):
     """

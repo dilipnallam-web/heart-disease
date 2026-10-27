@@ -4,7 +4,7 @@
  */
 
 import { requireAuth } from './auth.js';
-import { dashboardAPI } from './api.js';
+import { dashboardAPI, modelAPI } from './api.js';
 import { showToast, formatDateTime } from './ui.js';
 
 let activityChartInstance = null;
@@ -20,6 +20,26 @@ export async function initDashboard() {
 
   loadStats();
   loadRecentPredictions();
+  loadDatabaseHealth();
+}
+
+async function loadDatabaseHealth() {
+  const badge = document.getElementById('db-status-badge');
+  if (!badge) return;
+  try {
+    const res = await modelAPI.getDbHealth();
+    const data = res.data || {};
+    if (data.type === 'mongodb_atlas') {
+      badge.className = 'badge badge-success';
+      badge.textContent = `MongoDB Atlas (${data.database_name || 'Connected'})`;
+    } else {
+      badge.className = 'badge badge-secondary';
+      badge.textContent = 'Local Mock (Atlas Available)';
+    }
+  } catch (err) {
+    badge.className = 'badge badge-secondary';
+    badge.textContent = 'Mock Fallback Store';
+  }
 }
 
 async function loadStats() {
@@ -70,11 +90,12 @@ async function loadRecentPredictions() {
       tdDate.textContent = formatDateTime(item.created_at);
       tr.appendChild(tdDate);
 
-      // Patient Vitals Summary (Age / Sex / BP / Chol)
+      // Patient Details & Vitals Summary
       const tdVitals = document.createElement('td');
       const feats = item.validated_features || {};
       const sexLabel = feats.sex === 1 ? 'Male' : 'Female';
-      tdVitals.textContent = `${feats.age || 'N/A'} yrs, ${sexLabel} | BP: ${feats.trestbps || 'N/A'} mmHg`;
+      const pName = item.patient_name || 'Anonymous Patient';
+      tdVitals.innerHTML = `<strong>${pName}</strong> <span class="text-muted" style="font-size: 0.85rem;">(${feats.age || 'N/A'} yrs, ${sexLabel} | BP: ${feats.trestbps || 'N/A'})</span>`;
       tr.appendChild(tdVitals);
 
       // Prediction Label
