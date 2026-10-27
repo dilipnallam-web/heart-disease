@@ -73,7 +73,7 @@ def build_stacking_classifier(random_state=42, cv=5, class_weight=None):
         cv=cv,
         stack_method="predict_proba",
         passthrough=False,
-        n_jobs=-1
+        n_jobs=1
     )
 
     return stacking_clf

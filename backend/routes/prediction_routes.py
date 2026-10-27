@@ -27,6 +27,7 @@ def predict():
         return error_response(
             message=res.get("message"),
             error_code=res.get("code", "PREDICTION_FAILED"),
+            details=res.get("details"),
             status_code=res.get("status", 400)
         )
 

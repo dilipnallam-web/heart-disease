@@ -47,6 +47,18 @@ class HeartDiseasePredictor:
                 else:
                     self.pipeline = bundle
                     self.metadata = {"model_name": "StackingClassifier", "version": "1.0.0"}
+
+                # Force single-threaded execution (n_jobs=1) to prevent multiprocessing/loky crashes in cloud containers
+                try:
+                    if hasattr(self.pipeline, "named_steps") and "classifier" in self.pipeline.named_steps:
+                        clf = self.pipeline.named_steps["classifier"]
+                        if hasattr(clf, "n_jobs"):
+                            clf.n_jobs = 1
+                    elif hasattr(self.pipeline, "n_jobs"):
+                        self.pipeline.n_jobs = 1
+                except Exception:
+                    pass
+
                 self.is_loaded = True
             except Exception as e:
                 self.is_loaded = False
@@ -124,8 +136,8 @@ class HeartDiseasePredictor:
                 )
 
         validated_data = self.validate_inputs(raw_input_dict)
-        # Prepare single-row DataFrame with exact feature column order
-        df_row = pd.DataFrame([validated_data])[FEATURE_COLUMNS]
+        # Prepare single-row DataFrame with exact feature column order and matching float64 types
+        df_row = pd.DataFrame([validated_data])[FEATURE_COLUMNS].astype(float)
 
         # Predict class
         pred_class = int(self.pipeline.predict(df_row)[0])

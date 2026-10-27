@@ -41,11 +41,12 @@ class PredictionService:
                 "status": 503
             }
         except Exception as e:
-            logger.exception("Unexpected error during inference execution")
+            logger.exception(f"Unexpected error during inference execution: {e}")
             return {
                 "success": False,
-                "message": "An error occurred during inference calculation.",
+                "message": f"Inference calculation error: {str(e)}",
                 "code": "INFERENCE_ERROR",
+                "details": str(e),
                 "status": 500
             }
 
